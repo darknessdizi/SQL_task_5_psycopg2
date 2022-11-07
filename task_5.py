@@ -32,12 +32,14 @@ def create_table(cursor):
     cursor.execute('''CREATE TABLE IF NOT EXISTS Emails(
                     id SERIAL PRIMARY KEY,
                     email VARCHAR,
-                    clients_id INTEGER REFERENCES Clients (id));'''
+                    clients_id INTEGER REFERENCES Clients (id)
+                    ON DELETE CASCADE);'''
                     )
     cursor.execute('''CREATE TABLE IF NOT EXISTS Phones(
                     id SERIAL PRIMARY KEY,
                     phone VARCHAR(16),
-                    clients_id INTEGER REFERENCES Clients (id));'''
+                    clients_id INTEGER REFERENCES Clients (id)
+                    ON DELETE CASCADE);'''
                     )
 
 def add_new_client(cursor, **my_dict):
@@ -108,17 +110,42 @@ def delete_phone(cursor, phone):
     
     '''
 
-    # cursor.execute(f'''DELETE FROM Phones
-    #                 WHERE phone = {phone};''')
-    cursor.execute('''DELETE FROM Phones
-                    WHERE phone=%s;''', phone)
+    cursor.execute(f'''DELETE FROM Phones
+                    WHERE phone = '{phone}';''')
+    # cursor.execute('''DELETE FROM Phones
+    #                 WHERE phone='%s';''', phone) #??????????????????
 
 
-def delete_client():
-    pass
+def delete_client(cursor, id):
 
-def find_client(name, last_name, email, phone):
-    pass
+    '''Функция удаляет клиента. Необходимо передать курсор
+    
+    и id номер клиента.
+    
+    '''
+
+    cursor.execute('''DELETE FROM Clients
+                    WHERE id = %s;''', id)
+
+def find_client(cursor, name=None, last_name=None, email=None, phone=None):
+    
+    cursor.execute('''SELECT c.id, c.name, c.last_name, e.email, p.phone 
+                    FROM Clients c
+                    FULL JOIN Emails e ON e.clients_id = c.id
+                    FULL JOIN Phones p ON p.clients_id = c.id
+                    WHERE 
+                    ORDER  BY c.id;''')
+    print("ID   Name           Last_name           Email               Phone")
+    n = 5
+    for element in cursor.fetchall():
+        for i in element:
+            print(str(i).ljust(n, ' '), end='')
+            if n == 5:
+                n += 10
+            elif n == 15:
+                n += 5 
+        print()
+        n = 5
 
 
 if __name__ == '__main__':
@@ -140,10 +167,10 @@ if __name__ == '__main__':
     ]
 
     with conn.cursor() as cursor:
-        # del_table(cursor, 'emails')
-        # del_table(cursor, 'Phones')
-        # del_table(cursor, 'Clients')
-        del_table(cursor)
+        del_table(cursor, 'Emails')
+        del_table(cursor, 'Phones')
+        del_table(cursor, 'Clients')
+        # del_table(cursor)
 
         create_table(cursor)
 
@@ -151,6 +178,8 @@ if __name__ == '__main__':
             add_new_client(cursor, **element)
 
         add_phone(cursor, 'Dmitriy', 'Krutikov', '8(345)568-23-45')
+        add_phone(cursor, 'Dmitriy', 'Krutikov', '8(121)432-67-99')
+        add_phone(cursor, 'Dmitriy', 'Krutikov', '+7(767)144-12-12')
         add_phone(cursor, 'Yana', 'Stroynaya', '+7(222)456-12-23')
         # add_phone(cursor, 'Dmitriy', 'Krutikov', '8(345)568-23-45-888') #кроме try except как еще отслеживать?????
 
@@ -160,7 +189,11 @@ if __name__ == '__main__':
         add_new_client(cursor, name='Dizi', last_name='Hohotushka', 
                         email=None, phone=['+7(911)451-67-92'])
 
-        delete_phone(cursor, '8(345)568-23-45')
+        find_client(cursor)
+
+        # delete_phone(cursor, '8(345)568-23-45')
+
+        # delete_client(cursor, '3')
 
         conn.commit()
 
