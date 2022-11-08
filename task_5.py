@@ -211,10 +211,10 @@ if __name__ == '__main__':
 
     with conn.cursor() as cursor:
         # удаление таблиц из базы (можно по отдельности или сразу все):
-        # del_table(cursor, 'Emails')
-        # del_table(cursor, 'Phones')
-        # del_table(cursor, 'Clients')
-        del_table(cursor)
+        del_table(cursor, 'Emails')
+        del_table(cursor, 'Phones')
+        del_table(cursor, 'Clients')
+        # del_table(cursor)
 
         # создание таблиц для базы данных согласно заданию:
         create_table(cursor)
