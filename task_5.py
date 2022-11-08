@@ -3,7 +3,7 @@ import psycopg2
 
 def del_table(cursor, title=None):
 
-    '''Функция удаляет таблицу из базы данных. Необходимо передать
+    '''Функция удаляет таблицу(цы) из базы данных. Необходимо передать
     
     курсор и название таблицы.
     
@@ -99,10 +99,23 @@ def add_phone(cursor, name, last_name, phone):
                             )
                         )
 
-def update_client():
-    pass
+def update_client(cursor, id_client, name=None, last_name=None, email=None, phone=None):
+    line = []
+    if name:
+        line.append(f"name = '{name}'")
+    if last_name:
+        line.append(f"last_name = '{last_name}'")
+    if name or last_name:
+        line = ','.join(line)
+        cursor.execute(f'''UPDATE Clients c SET {line} WHERE c.id = {id_client};''')
+    if email:
+        line = f"email= '{email}'"
+        cursor.execute(f'''UPDATE Emails SET {line} WHERE clients_id = {id_client};''')
+    if phone:
+        line = f"phone= '{phone}'"
+        cursor.execute(f'''UPDATE Phones SET {line} WHERE clients_id = {id_client};''')
 
-def delete_phone(cursor, phone):
+def delete_phone(cursor, id, phone):
 
     '''Функция удаляет телефон у существующего клиента. 
     
@@ -111,7 +124,7 @@ def delete_phone(cursor, phone):
     '''
 
     cursor.execute(f'''DELETE FROM Phones
-                    WHERE phone = '{phone}';''')
+                    WHERE clients_id = '{id}' AND phone = '{phone}';''')
     # cursor.execute('''DELETE FROM Phones
     #                 WHERE phone='%s';''', phone) #??????????????????
 
@@ -129,13 +142,21 @@ def delete_client(cursor, id):
 
 def find_client(cursor, name=None, last_name=None, email=None, phone=None):
     
-    cursor.execute('''SELECT c.id, c.name, c.last_name, e.email, p.phone 
-                    FROM Clients c
-                    FULL JOIN Emails e ON e.clients_id = c.id
-                    FULL JOIN Phones p ON p.clients_id = c.id
-                    WHERE 
-                    ORDER  BY c.id;''')
-    print("ID   Name           Last_name           Email               Phone")
+    if not (name and last_name and email and phone):
+        cursor.execute('''SELECT c.id, c.name, c.last_name, e.email, p.phone 
+                        FROM Clients c
+                        FULL JOIN Emails e ON e.clients_id = c.id
+                        FULL JOIN Phones p ON p.clients_id = c.id 
+                        ORDER  BY c.id;''')
+    else:
+        cursor.execute('''SELECT c.id, c.name, c.last_name, e.email, p.phone 
+                        FROM Clients c
+                        FULL JOIN Emails e ON e.clients_id = c.id
+                        FULL JOIN Phones p ON p.clients_id = c.id
+                        WHERE c.name = %s OR c.last_name = %s OR e.email = %s OR p.phone = %s 
+                        ORDER  BY c.id;''', (name, last_name, email, phone))
+    n = ' '
+    print(f"ID{n*3}Name{n*11}Last_name{n*16}Email{n*20}Phone")
     n = 5
     for element in cursor.fetchall():
         for i in element:
@@ -143,9 +164,10 @@ def find_client(cursor, name=None, last_name=None, email=None, phone=None):
             if n == 5:
                 n += 10
             elif n == 15:
-                n += 5 
+                n += 10 
         print()
         n = 5
+    print()
 
 
 if __name__ == '__main__':
@@ -167,31 +189,47 @@ if __name__ == '__main__':
     ]
 
     with conn.cursor() as cursor:
-        del_table(cursor, 'Emails')
-        del_table(cursor, 'Phones')
-        del_table(cursor, 'Clients')
+        # del_table(cursor, 'Emails')
+        # del_table(cursor, 'Phones')
+        # del_table(cursor, 'Clients')
         # del_table(cursor)
 
-        create_table(cursor)
+        # create_table(cursor)
 
-        for element in list_for_test:
-            add_new_client(cursor, **element)
+        # for element in list_for_test:
+        #     add_new_client(cursor, **element)
 
-        add_phone(cursor, 'Dmitriy', 'Krutikov', '8(345)568-23-45')
-        add_phone(cursor, 'Dmitriy', 'Krutikov', '8(121)432-67-99')
-        add_phone(cursor, 'Dmitriy', 'Krutikov', '+7(767)144-12-12')
-        add_phone(cursor, 'Yana', 'Stroynaya', '+7(222)456-12-23')
+        # add_phone(cursor, 'Dmitriy', 'Krutikov', '8(345)568-23-45')
+        # add_phone(cursor, 'Dmitriy', 'Krutikov', '8(121)432-67-99')
+        # add_phone(cursor, 'Dmitriy', 'Krutikov', '+7(767)144-12-12')
+        # add_phone(cursor, 'Yana', 'Stroynaya', '+7(222)456-12-23')
         # add_phone(cursor, 'Dmitriy', 'Krutikov', '8(345)568-23-45-888') #кроме try except как еще отслеживать?????
 
-        new_client = {'name': 'Vironika', 'last_name': 'Smit', 'email': [], 
-            'phone': None}
-        add_new_client(cursor, **new_client)
-        add_new_client(cursor, name='Dizi', last_name='Hohotushka', 
-                        email=None, phone=['+7(911)451-67-92'])
+        # new_client = {'name': 'Vironika', 'last_name': 'Smit', 'email': [], 
+        #     'phone': None}
+        # add_new_client(cursor, **new_client)
+        # add_new_client(cursor, name='Dizi', last_name='Hohotushka', 
+        #                 email=None, phone=['+7(911)451-67-92'])
+
+        # find_client(cursor, phone='+7(932)231-89-67')
+        # print()
+        # find_client(cursor)
+        # print()
+        # find_client(cursor, name='Dizi')
+        # print()
+        # find_client(cursor, last_name='Smit', email='len4ik@mail.ru')
+        # print()
+        # find_client(cursor, email='len4ik@mail.ru', last_name='Smit', name='Dmitriy')
+        # print()
 
         find_client(cursor)
+        # update_client(cursor, '4', name='Demon', last_name='Logos', 
+        #               email='darklogos@mail.ru', phone='+7(111)444-55-66')
+        # add_phone(cursor, 'Demon', 'Logos', '+7(111)444-55-66')
+        # delete_phone(cursor, '4', '+7(111)444-55-66')
+        # find_client(cursor, name='Demon')
 
-        # delete_phone(cursor, '8(345)568-23-45')
+        # delete_phone(cursor, '+7(111)444-55-66')
 
         # delete_client(cursor, '3')
 
