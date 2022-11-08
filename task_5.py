@@ -60,44 +60,27 @@ def add_new_client(cursor, **my_dict):
                     )
     id = cursor.fetchone()[0]
 
-    if my_dict['email'] != None:
+    if not my_dict['email'] is None:
         for element in my_dict['email']:
             cursor.execute('''INSERT INTO Emails(email, clients_id)
-                            VALUES (%s, %s);''', (
-                                element, str(id)
-                                )
+                            VALUES (%s, %s);''', (element, str(id))
                             )
-    if my_dict['phone'] != None:
+    if not my_dict['phone'] is None:
         for element in my_dict['phone']:
             cursor.execute('''INSERT INTO Phones(phone, clients_id)
-                            VALUES (%s, %s);''', (
-                                element, str(id)
-                                )
+                            VALUES (%s, %s);''', (element, str(id))
                             )                   
     
-def add_phone(cursor, name, last_name, phone):
+def add_phone(cursor, id, phone):
 
     '''Функция добавляет телефон к существующему клиенту. 
     
-    Необходимо передать курсор, name и last_name клиента, 
-    
-    новый телефон.
+    Необходимо передать курсор, id клиента и новый телефон.
     
     '''
     
-    cursor.execute('''SELECT id FROM Clients c
-                    WHERE c.name = %s AND c.last_name = %s;''', (
-                        name, last_name)
-                    )
-    id = cursor.fetchone()
-    if not id:
-        print(f'Клиент {name} {last_name} не найден/на!')
-    else:
-        cursor.execute('''INSERT INTO Phones(phone, clients_id)
-                        VALUES (%s, %s);''', (
-                            phone, str(id[0])
-                            )
-                        )
+    cursor.execute('''INSERT INTO Phones(phone, clients_id)
+                    VALUES (%s, %s);''', (phone, id))
 
 def update_client(cursor, id_client, name=None, last_name=None, email=None, phone=None):
     line = []
@@ -124,7 +107,7 @@ def delete_phone(cursor, id, phone):
     удаляемого телефона.
     
     '''
-    
+
     cursor.execute('''DELETE FROM Phones
                     WHERE clients_id = %s AND phone=%s;''', (id, phone)) 
 
@@ -219,8 +202,10 @@ if __name__ == '__main__':
         # new_client = {'name': 'Vironika', 'last_name': 'Smit', 'email': [], 
         #     'phone': None}
         # add_new_client(cursor, **new_client)
-        # add_new_client(cursor, name='Dizi', last_name='Hohotushka', 
-        #                 email=None, phone=['+7(911)451-67-92'])
+        # add_new_client(cursor, name='Izi', last_name='Penthause', 
+        #                 email=['sisi@mail.ru'], phone=None)
+        # add_new_client(cursor, name='Vika', last_name='Sosochkova', 
+        #                 email=None, phone=None)
 
         # find_client(cursor, phone='+7(932)231-89-67')
         # print()
@@ -232,11 +217,12 @@ if __name__ == '__main__':
         # print()
         # find_client(cursor, email='len4ik@mail.ru', last_name='Smit', name='Dmitriy')
         # print()
-
-        # find_client(cursor)
-        # update_client(cursor, '4', name='Demon', last_name='Logos', 
-        #               email='darklogos@mail.ru', phone='+7(111)444-55-66')
-        # add_phone(cursor, 'Demon', 'Logos', '+7(111)444-55-66')
+        update_client(cursor, '1', name='Alisa', last_name='Pervaya')
+        find_client(cursor)
+        # update_client(cursor, '4', name='Zayka', last_name='Shustriy', 
+        #               email='darklogos@mail.ru', phone='+7(333)666-77-88')
+        # update_client(cursor, '4')
+        # add_phone(cursor, '12', '+7(555)321-12-21')
         # delete_phone(cursor, '4', '+7(111)444-55-66')
         # find_client(cursor, name='Demon')
 
