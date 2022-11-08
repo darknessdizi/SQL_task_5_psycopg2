@@ -31,7 +31,7 @@ def create_table(cursor):
                     )
     cursor.execute('''CREATE TABLE IF NOT EXISTS Emails(
                     id SERIAL PRIMARY KEY,
-                    email VARCHAR,
+                    email VARCHAR(24),
                     clients_id INTEGER REFERENCES Clients (id)
                     ON DELETE CASCADE);'''
                     )
@@ -119,14 +119,14 @@ def delete_phone(cursor, id, phone):
 
     '''Функция удаляет телефон у существующего клиента. 
     
-    Необходимо передать курсор и номер удаляемого телефона.
+    Необходимо передать курсор, id номер клиента и номер
+    
+    удаляемого телефона.
     
     '''
-
-    cursor.execute(f'''DELETE FROM Phones
-                    WHERE clients_id = '{id}' AND phone = '{phone}';''')
-    # cursor.execute('''DELETE FROM Phones
-    #                 WHERE phone='%s';''', phone) #??????????????????
+    
+    cursor.execute('''DELETE FROM Phones
+                    WHERE clients_id = %s AND phone=%s;''', (id, phone)) 
 
 
 def delete_client(cursor, id):
@@ -141,8 +141,19 @@ def delete_client(cursor, id):
                     WHERE id = %s;''', id)
 
 def find_client(cursor, name=None, last_name=None, email=None, phone=None):
+
+    '''Функция ищет клиентов в базе. Необходимо передать курсор и 
     
-    if not (name and last_name and email and phone):
+    параметры поиска (name, last_name, email, phone). Если параметры 
+    
+    поиска не переданы, тогда будут напечатаны все данные из базы 
+    
+    данных.
+    
+    '''
+    
+    if ((name is None) and (last_name is None) and 
+        (email is None) and (phone is None)):
         cursor.execute('''SELECT c.id, c.name, c.last_name, e.email, p.phone 
                         FROM Clients c
                         FULL JOIN Emails e ON e.clients_id = c.id
@@ -222,14 +233,12 @@ if __name__ == '__main__':
         # find_client(cursor, email='len4ik@mail.ru', last_name='Smit', name='Dmitriy')
         # print()
 
-        find_client(cursor)
+        # find_client(cursor)
         # update_client(cursor, '4', name='Demon', last_name='Logos', 
         #               email='darklogos@mail.ru', phone='+7(111)444-55-66')
         # add_phone(cursor, 'Demon', 'Logos', '+7(111)444-55-66')
         # delete_phone(cursor, '4', '+7(111)444-55-66')
         # find_client(cursor, name='Demon')
-
-        # delete_phone(cursor, '+7(111)444-55-66')
 
         # delete_client(cursor, '3')
 
